@@ -1,19 +1,29 @@
 import os
+
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
 
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-
-security = HTTPBearer()
-
+from dotenv import load_dotenv
 
 from models import AdminLogin, db
 
+# =========================
+# LOAD ENV VARIABLES
+# =========================
+load_dotenv()
+
 router = APIRouter()
+
+# =========================
+# SECURITY
+# =========================
+security = HTTPBearer()
 
 # =========================
 # ARGON2 PASSWORD HASHER
@@ -24,7 +34,10 @@ ph = PasswordHasher()
 # JWT CONFIG
 # =========================
 SECRET_KEY = os.getenv("SECRET_KEY")
-ALGORITHM = os.getenv("ALGORITHM")
+ALGORITHM = os.getenv("ALGORITHM", "HS256")
+
+if not SECRET_KEY:
+    raise ValueError("SECRET_KEY missing in .env")
 
 # =========================
 # PASSWORD FUNCTIONS
@@ -33,31 +46,42 @@ def hash_password(password: str):
     return ph.hash(password)
 
 def verify_password(plain_password, hashed_password):
+
     try:
         ph.verify(hashed_password, plain_password)
         return True
+
     except VerifyMismatchError:
         return False
 
 # =========================
-# JWT TOKEN CREATION
+# CREATE JWT TOKEN
 # =========================
 def create_access_token(data: dict):
+
     to_encode = data.copy()
 
     expire = datetime.utcnow() + timedelta(days=1)
-    to_encode.update({"exp": expire})
+
+    to_encode.update({
+        "exp": expire
+    })
+
     return jwt.encode(
         to_encode,
         SECRET_KEY,
         algorithm=ALGORITHM
     )
 
+# =========================
+# VERIFY JWT TOKEN
+# =========================
 def verify_token(
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ):
 
     try:
+
         token = credentials.credentials
 
         payload = jwt.decode(
@@ -89,7 +113,7 @@ def verify_token(
 @router.post("/login")
 async def login(data: AdminLogin):
 
-    # FIND ADMIN IN LOCAL DB
+    # FIND ADMIN
     admin = db.find_admin(data.username)
 
     if not admin:
@@ -99,13 +123,17 @@ async def login(data: AdminLogin):
         )
 
     # VERIFY PASSWORD
-    if not verify_password(data.password, admin["password"]):
+    if not verify_password(
+        data.password,
+        admin["password"]
+    ):
+
         raise HTTPException(
             status_code=401,
             detail="Invalid password"
         )
 
-    # CREATE TOKEN
+    # CREATE JWT TOKEN
     token = create_access_token({
         "username": admin["username"]
     })
