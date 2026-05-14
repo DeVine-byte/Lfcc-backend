@@ -1,3 +1,4 @@
+import os
 from fastapi import APIRouter, Depends, HTTPException
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
@@ -22,8 +23,8 @@ ph = PasswordHasher()
 # =========================
 # JWT CONFIG
 # =========================
-SECRET_KEY = "SUPER_SECRET_KEY"
-ALGORITHM = "HS256"
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
 
 # =========================
 # PASSWORD FUNCTIONS
