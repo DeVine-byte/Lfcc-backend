@@ -6,26 +6,32 @@ from auth import verify_token
 
 router = APIRouter()
 
+
 # =========================
-# DATA MODELS
+# BROADCAST MODEL
 # =========================
 class Broadcast(BaseModel):
     title: str
-    video_url: str
-    date: str
+    description: str
+    videoUrl: str
+    thumbnail: str
 
 
+# =========================
+# MESSAGE MODEL
+# =========================
 class Message(BaseModel):
     title: str
-    speaker: str
-    audio_url: str
+    videoUrl: str
 
 
+# =========================
+# EVENT MODEL
+# =========================
 class Event(BaseModel):
     title: str
-    description: str
+    mediaUrl: str
     date: str
-
 
 # =========================
 # SAVE BROADCAST
