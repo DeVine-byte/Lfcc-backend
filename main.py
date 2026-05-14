@@ -8,11 +8,16 @@ from auth import router as auth_router, hash_password
 from models import db
 from cms import router as cms_router
 
+# =========================
 # LOAD ENV VARIABLES
+# =========================
 load_dotenv()
 
 app = FastAPI()
 
+# =========================
+# CORS
+# =========================
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -23,6 +28,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# =========================
+# CMS ROUTES
+# =========================
 app.include_router(
     cms_router,
     prefix="/cms",
@@ -30,7 +38,16 @@ app.include_router(
 )
 
 # =========================
-# LOAD DEFAULT ADMIN ON START
+# AUTH ROUTES
+# =========================
+app.include_router(
+    auth_router,
+    prefix="/auth",
+    tags=["Authentication"]
+)
+
+# =========================
+# STARTUP EVENT
 # =========================
 @app.on_event("startup")
 def startup():
@@ -40,19 +57,27 @@ def startup():
 
     # CREATE ADMIN ONLY IF NOT EXISTS
     if ADMIN_USERNAME and ADMIN_PASSWORD:
-        if not db.find_admin(ADMIN_USERNAME):
+
+        existing_admin = db.find_admin(ADMIN_USERNAME)
+
+        if not existing_admin:
             db.create_admin(
                 username=ADMIN_USERNAME,
                 password=hash_password(ADMIN_PASSWORD)
             )
 
-# AUTH ROUTES
-app.include_router(
-    auth_router,
-    prefix="/auth",
-    tags=["Authentication"]
-)
+            print(" Default admin created")
 
+        else:
+            print(" Admin already exists")
+
+    else:
+        print(" ADMIN_USERNAME or ADMIN_PASSWORD missing")
+
+
+# =========================
+# ROOT ROUTE
+# =========================
 @app.get("/")
 def root():
     return {
