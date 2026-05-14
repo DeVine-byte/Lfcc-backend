@@ -10,7 +10,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 security = HTTPBearer()
 
 
-from app.models import AdminLogin, db
+from models import AdminLogin, db
 
 router = APIRouter()
 
