@@ -1,144 +1,90 @@
-import os
+from fastapi import APIRouter, Depends
+from pydantic import BaseModel
 
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-
-from jose import jwt, JWTError
-from datetime import datetime, timedelta
-
-from argon2 import PasswordHasher
-from argon2.exceptions import VerifyMismatchError
-
-from dotenv import load_dotenv
-
-from models import AdminLogin, db
-
-# =========================
-# LOAD ENV VARIABLES
-# =========================
-load_dotenv()
+from models import db
+from auth import verify_token
 
 router = APIRouter()
 
 # =========================
-# SECURITY
+# DATA MODELS
 # =========================
-security = HTTPBearer()
+class Broadcast(BaseModel):
+    title: str
+    video_url: str
+    date: str
 
-# =========================
-# ARGON2 PASSWORD HASHER
-# =========================
-ph = PasswordHasher()
 
-# =========================
-# JWT CONFIG
-# =========================
-SECRET_KEY = os.getenv("SECRET_KEY")
-ALGORITHM = os.getenv("ALGORITHM", "HS256")
+class Message(BaseModel):
+    title: str
+    speaker: str
+    audio_url: str
 
-if not SECRET_KEY:
-    raise ValueError("SECRET_KEY missing in .env")
 
-# =========================
-# PASSWORD FUNCTIONS
-# =========================
-def hash_password(password: str):
-    return ph.hash(password)
+class Event(BaseModel):
+    title: str
+    description: str
+    date: str
 
-def verify_password(plain_password, hashed_password):
-
-    try:
-        ph.verify(hashed_password, plain_password)
-        return True
-
-    except VerifyMismatchError:
-        return False
 
 # =========================
-# CREATE JWT TOKEN
+# SAVE BROADCAST
 # =========================
-def create_access_token(data: dict):
-
-    to_encode = data.copy()
-
-    expire = datetime.utcnow() + timedelta(days=1)
-
-    to_encode.update({
-        "exp": expire
-    })
-
-    return jwt.encode(
-        to_encode,
-        SECRET_KEY,
-        algorithm=ALGORITHM
-    )
-
-# =========================
-# VERIFY JWT TOKEN
-# =========================
-def verify_token(
-    credentials: HTTPAuthorizationCredentials = Depends(security)
+@router.post("/broadcast")
+def save_broadcast(
+    data: Broadcast,
+    user=Depends(verify_token)
 ):
-
-    try:
-
-        token = credentials.credentials
-
-        payload = jwt.decode(
-            token,
-            SECRET_KEY,
-            algorithms=[ALGORITHM]
-        )
-
-        username = payload.get("username")
-
-        if username is None:
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid token"
-            )
-
-        return username
-
-    except JWTError:
-
-        raise HTTPException(
-            status_code=401,
-            detail="Token invalid or expired"
-        )
-
-# =========================
-# LOGIN ROUTE
-# =========================
-@router.post("/login")
-async def login(data: AdminLogin):
-
-    # FIND ADMIN
-    admin = db.find_admin(data.username)
-
-    if not admin:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid username"
-        )
-
-    # VERIFY PASSWORD
-    if not verify_password(
-        data.password,
-        admin["password"]
-    ):
-
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid password"
-        )
-
-    # CREATE JWT TOKEN
-    token = create_access_token({
-        "username": admin["username"]
-    })
+    db.add_broadcast(data.dict())
 
     return {
-        "access_token": token,
-        "token_type": "bearer"
+        "message": "Broadcast saved"
     }
+
+
+# =========================
+# SAVE MESSAGE OF WEEK
+# =========================
+@router.post("/message")
+def save_message(
+    data: Message,
+    user=Depends(verify_token)
+):
+    db.add_message(data.dict())
+
+    return {
+        "message": "Message saved"
+    }
+
+
+# =========================
+# SAVE EVENT
+# =========================
+@router.post("/event")
+def save_event(
+    data: Event,
+    user=Depends(verify_token)
+):
+    db.add_event(data.dict())
+
+    return {
+        "message": "Event saved"
+    }
+
+
+# =========================
+# GET DATA
+# =========================
+@router.get("/broadcasts")
+def get_broadcasts():
+    return db.get_broadcasts()
+
+
+@router.get("/messages")
+def get_messages():
+    return db.get_messages()
+
+
+@router.get("/events")
+def get_events():
+    return db.get_events()
