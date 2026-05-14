@@ -21,13 +21,13 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://broadcast-platform.onrender.com"
+        "http://localhost:5173",
+        "https://broadcast-platform.onrender.com/"
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 # =========================
 # CMS ROUTES
 # =========================
