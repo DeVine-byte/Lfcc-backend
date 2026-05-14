@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 
-from app.models import db
-from app.auth import verify_token
+from models import db
+from auth import verify_token
 
 router = APIRouter()
 
