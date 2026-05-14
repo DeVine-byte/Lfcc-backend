@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+python-jose
+argon2-cffi
+pydantic
+python-multipart
