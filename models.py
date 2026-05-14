@@ -1,9 +1,14 @@
+import os
 
 from pymongo import MongoClient
 from pydantic import BaseModel
+from dotenv import load_dotenv
+
+# LOAD ENV VARIABLES
+load_dotenv()
 
 # MONGODB CONNECTION
-MONGO_URL = "mongodb+srv://divine4529_db_user:Z9eVtwi8gZp5GkXp@cluster0.xkmltbd.mongodb.net/?appName=Cluster0"
+MONGO_URL = os.getenv("MONGO_URL")
 
 client = MongoClient(MONGO_URL)
 
@@ -13,5 +18,5 @@ admins_collection = db["admins"]
 
 # ADMIN MODEL
 class AdminLogin(BaseModel):
-    username: str
-    password: str
+    username: str
+    password: str
