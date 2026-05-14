@@ -4,9 +4,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
-from app.auth import router as auth_router, hash_password
-from app.models import db
-from app.cms import router as cms_router
+from auth import router as auth_router, hash_password
+from models import db
+from cms import router as cms_router
 
 # LOAD ENV VARIABLES
 load_dotenv()
