@@ -4,3 +4,4 @@ python-jose
 argon2-cffi
 pydantic
 python-multipart
+python-dotenv
