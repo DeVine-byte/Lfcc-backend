@@ -1,97 +1,93 @@
-
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
-
-from models import db
 from auth import verify_token
+from models import db
 
 router = APIRouter()
 
-
 # =========================
-# BROADCAST MODEL
-# =========================
-class Broadcast(BaseModel):
-    title: str
-    description: str
-    videoUrl: str
-    thumbnail: str
-
-
-# =========================
-# MESSAGE MODEL
-# =========================
-class Message(BaseModel):
-    title: str
-    videoUrl: str
-
-
-# =========================
-# EVENT MODEL
-# =========================
-class Event(BaseModel):
-    title: str
-    mediaUrl: str
-    date: str
-
-# =========================
-# SAVE BROADCAST
+# CREATE BROADCAST
 # =========================
 @router.post("/broadcast")
-def save_broadcast(
-    data: Broadcast,
+def create_broadcast(
+    data: dict,
     user=Depends(verify_token)
 ):
-    db.add_broadcast(data.dict())
+
+    db.broadcasts.insert_one(data)
 
     return {
-        "message": "Broadcast saved"
+        "message": "Broadcast uploaded"
     }
 
 
 # =========================
-# SAVE MESSAGE OF WEEK
+# CREATE MESSAGE
 # =========================
 @router.post("/message")
-def save_message(
-    data: Message,
+def create_message(
+    data: dict,
     user=Depends(verify_token)
 ):
-    db.add_message(data.dict())
+
+    db.messages.delete_many({})
+
+    db.messages.insert_one(data)
 
     return {
-        "message": "Message saved"
+        "message": "Message uploaded"
     }
 
 
 # =========================
-# SAVE EVENT
+# CREATE EVENT
 # =========================
 @router.post("/event")
-def save_event(
-    data: Event,
+def create_event(
+    data: dict,
     user=Depends(verify_token)
 ):
-    db.add_event(data.dict())
+
+    db.events.insert_one(data)
 
     return {
-        "message": "Event saved"
+        "message": "Event uploaded"
     }
 
 
 # =========================
-# GET DATA
+# GET BROADCASTS
 # =========================
 @router.get("/broadcasts")
 def get_broadcasts():
-    return db.get_broadcasts()
+
+    broadcasts = list(
+        db.broadcasts.find({}, {"_id": 0})
+    )
+
+    return broadcasts
 
 
+# =========================
+# GET MESSAGES
+# =========================
 @router.get("/messages")
 def get_messages():
-    return db.get_messages()
+
+    messages = list(
+        db.messages.find({}, {"_id": 0})
+    )
+
+    return messages
 
 
+# =========================
+# GET EVENTS
+# =========================
 @router.get("/events")
 def get_events():
-    return db.get_events()
+
+    events = list(
+        db.events.find({}, {"_id": 0})
+    )
+
+    return events
