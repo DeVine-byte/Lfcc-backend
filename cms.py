@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
-from auth import verify_token
-from models import db
+from app.auth import verify_token
+from app.models import db
 
 router = APIRouter()
 
@@ -19,7 +19,6 @@ def create_broadcast(
         "message": "Broadcast uploaded"
     }
 
-
 # =========================
 # CREATE MESSAGE
 # =========================
@@ -34,7 +33,6 @@ def create_message(
     return {
         "message": "Message uploaded"
     }
-
 
 # =========================
 # CREATE EVENT
@@ -51,7 +49,6 @@ def create_event(
         "message": "Event uploaded"
     }
 
-
 # =========================
 # GET BROADCASTS
 # =========================
@@ -59,7 +56,6 @@ def create_event(
 def get_broadcasts():
 
     return db.get_broadcasts()
-
 
 # =========================
 # GET MESSAGES
@@ -69,7 +65,6 @@ def get_messages():
 
     return db.get_messages()
 
-
 # =========================
 # GET EVENTS
 # =========================
@@ -77,3 +72,48 @@ def get_messages():
 def get_events():
 
     return db.get_events()
+
+# =========================
+# DELETE BROADCAST
+# =========================
+@router.delete("/broadcast/{id}")
+def delete_broadcast(
+    id: str,
+    user=Depends(verify_token)
+):
+
+    db.delete_broadcast(id)
+
+    return {
+        "message": "Broadcast deleted"
+    }
+
+# =========================
+# DELETE MESSAGE
+# =========================
+@router.delete("/message/{id}")
+def delete_message(
+    id: str,
+    user=Depends(verify_token)
+):
+
+    db.delete_message(id)
+
+    return {
+        "message": "Message deleted"
+    }
+
+# =========================
+# DELETE EVENT
+# =========================
+@router.delete("/event/{id}")
+def delete_event(
+    id: str,
+    user=Depends(verify_token)
+):
+
+    db.delete_event(id)
+
+    return {
+        "message": "Event deleted"
+    }
