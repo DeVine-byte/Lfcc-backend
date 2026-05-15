@@ -53,6 +53,7 @@ class Database:
 
     # MESSAGES
     def add_message(self, data):
+        messages_collection.delete_many({})
         return messages_collection.insert_one(data)
 
     def get_messages(self):
