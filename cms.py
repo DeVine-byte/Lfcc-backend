@@ -13,7 +13,7 @@ def create_broadcast(
     user=Depends(verify_token)
 ):
 
-    db.broadcasts.insert_one(data)
+    db.add_broadcast(data)
 
     return {
         "message": "Broadcast uploaded"
@@ -29,9 +29,7 @@ def create_message(
     user=Depends(verify_token)
 ):
 
-    db.messages.delete_many({})
-
-    db.messages.insert_one(data)
+    db.add_message(data)
 
     return {
         "message": "Message uploaded"
@@ -47,7 +45,7 @@ def create_event(
     user=Depends(verify_token)
 ):
 
-    db.events.insert_one(data)
+    db.add_event(data)
 
     return {
         "message": "Event uploaded"
@@ -60,11 +58,7 @@ def create_event(
 @router.get("/broadcasts")
 def get_broadcasts():
 
-    broadcasts = list(
-        db.broadcasts.find({}, {"_id": 0})
-    )
-
-    return broadcasts
+    return db.get_broadcasts()
 
 
 # =========================
@@ -73,11 +67,7 @@ def get_broadcasts():
 @router.get("/messages")
 def get_messages():
 
-    messages = list(
-        db.messages.find({}, {"_id": 0})
-    )
-
-    return messages
+    return db.get_messages()
 
 
 # =========================
@@ -86,8 +76,4 @@ def get_messages():
 @router.get("/events")
 def get_events():
 
-    events = list(
-        db.events.find({}, {"_id": 0})
-    )
-
-    return events
+    return db.get_events()
