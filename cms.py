@@ -117,3 +117,29 @@ def delete_event(
     return {
         "message": "Event deleted"
     }
+# =========================
+# INCREMENT VIEWS
+# =========================
+@router.put("/broadcast/views/{id}")
+def increment_broadcast_views(id: str):
+
+    db.increment_views(id)
+
+    return {
+        "message": "View added"
+    }
+
+# =========================
+# GET SINGLE BROADCAST
+# =========================
+@router.get("/broadcast/{id}")
+def get_single_broadcast(id: str):
+
+    broadcast = db.get_single_broadcast(id)
+
+    if not broadcast:
+        return {
+            "message": "Broadcast not found"
+        }
+
+    return broadcast
